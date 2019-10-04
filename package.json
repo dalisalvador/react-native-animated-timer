@@ -1,0 +1,28 @@
+{
+  "name": "react-native-animated-timer",
+  "version": "1.1.2",
+  "description": "Animated timer for RN",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dalisalvador/react-native-animated-timer.git"
+  },
+  "author": "FSE",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dalisalvador/react-native-circular-timer/issues"
+  },
+  "homepage": "https://github.com/dalisalvador/react-native-circular-timer#readme",
+  "dependencies": {
+    "react-native-gesture-handler": "^1.4.1",
+    "react-native-reanimated": "^1.2.0",
+    "react-native-shadow": "^1.2.2",
+    "react-native-svg": "^9.9.5"
+  },
+  "devDependencies": {
+    "metro-react-native-babel-preset": "^0.56.0"
+  }
+}
