@@ -27,14 +27,28 @@ const {
   and,
   divide,
   multiply,
-  sub
+  sub,
+  debug
 } = Animated;
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const clock = new Clock();
+const pauseFlag = new Value(0);
 
 const AnimatedTimer = ({ ...props }) => {
-  const { radius, time, colorA, colorB, randomColors, style } = props;
+  const {
+    radius,
+    time,
+    colorA,
+    colorB,
+    randomColors,
+    style,
+    textStyle,
+    showTime,
+    onTimeFinished,
+    loop = true,
+    pause
+  } = props;
 
   const runTiming = (clock, value, dest) => {
     const config = {
@@ -44,45 +58,103 @@ const AnimatedTimer = ({ ...props }) => {
     };
 
     const state = {
+      paused: new Value(0),
+      started: new Value(0),
       finished: new Value(0),
       position: new Value(0),
       time: new Value(0),
       frameTime: new Value(0)
     };
 
+    const pausedState = {
+      position: new Value(0),
+      time: new Value(0),
+      frameTime: new Value(0)
+    };
+
     return block([
+      cond(and(pauseFlag, not(state.paused)), [
+        set(state.paused, 1),
+        set(pausedState.position, state.position),
+        set(pausedState.time, state.time),
+        set(pausedState.frameTime, state.frameTime),
+        stopClock(clock),
+        debug("State time:", state.time),
+        debug("State position:", state.position),
+        debug("State frameTime:", state.frameTime),
+        debug("pausedState time:", pausedState.time),
+        debug("pausedState position:", pausedState.position),
+        debug("pausedState frameTime:", pausedState.frameTime)
+      ]),
+      cond(and(not(pauseFlag), state.paused), [
+        set(state.paused, 0),
+        set(state.position, pausedState.position),
+        set(state.time, pausedState.time),
+        set(state.frameTime, pausedState.frameTime),
+        debug("State time:", state.time),
+        debug("State position:", state.position),
+        debug("State frameTime:", state.frameTime),
+        debug("pausedState time:", pausedState.time),
+        debug("pausedState position:", pausedState.position),
+        debug("pausedState frameTime:", pausedState.frameTime),
+        startClock(clock)
+      ]),
       cond(
         clockRunning(clock),
         [set(config.toValue, dest)],
-        [startClock(clock)]
+        [cond(not(state.started), [startClock(clock), set(state.started, 1)])]
       ),
-      timing(clock, state, config),
+      cond(not(state.paused), [timing(clock, state, config)]),
+      // debug('State time:', state.time),
+      // debug('State position:', state.position),
+      // debug('State frameTime:', state.frameTime),
+      // debug('pausedState time:', pausedState.time),
+      // debug('pausedState position:', pausedState.position),
+      // debug('pausedState frameTime:', pausedState.frameTime),
       cond(state.finished, [
-        stopClock(clock),
-        call([], () => {
-          if (!randomColors && colorA !== undefined && colorB !== undefined) {
-            if (lastBackgroundRef.current === colorB) {
-              setLastBackground(colorA);
-              setBackground(colorB);
-            } else {
-              setLastBackground(colorB);
-              setBackground(colorA);
-            }
-          } else {
-            setLastBackground(backgroundRef.current);
-            setBackground(
-              "#" +
-                Math.random()
-                  .toString(16)
-                  .slice(2, 8)
-            );
-          }
-        }),
-        set(state.finished, 0),
-        set(state.time, 0),
-        set(state.position, value),
-        set(state.frameTime, 0),
-        set(config.toValue, dest)
+        cond(
+          loop,
+          [
+            stopClock(clock),
+            call([], () => {
+              if (
+                !randomColors &&
+                colorA !== undefined &&
+                colorB !== undefined
+              ) {
+                if (lastBackgroundRef.current === colorB) {
+                  setLastBackground(colorA);
+                  setBackground(colorB);
+                } else {
+                  setLastBackground(colorB);
+                  setBackground(colorA);
+                }
+              } else {
+                setLastBackground(backgroundRef.current);
+                setBackground(
+                  "#" +
+                    Math.random()
+                      .toString(16)
+                      .slice(2, 8)
+                );
+              }
+              if (onTimeFinished) onTimeFinished();
+            }),
+            set(state.finished, 0),
+            set(state.time, 0),
+            set(state.position, value),
+            set(state.frameTime, 0),
+            set(config.toValue, dest)
+          ],
+          [
+            cond(clockRunning(clock), [
+              call([], () => {
+                if (onTimeFinished) onTimeFinished();
+              })
+            ]),
+            stopClock(clock)
+          ]
+        )
       ]),
       state.position
     ]);
@@ -129,6 +201,11 @@ const AnimatedTimer = ({ ...props }) => {
     setInterval(() => tick(roundTimeRef.current), 1000);
   }, []);
 
+  useEffect(() => {
+    if (pause) pauseFlag.setValue(1);
+    else pauseFlag.setValue(0);
+  }, [pause]);
+
   return (
     <View
       elevation={5}
@@ -166,25 +243,37 @@ const AnimatedTimer = ({ ...props }) => {
           cy={(radius * 0.8) / 2}
         />
       </Svg>
-      <View
-        style={{
-          position: "absolute",
-          backgroundColor: "transparent",
-          height: "100%",
-          width: "100%",
-          justifyContent: "center"
-        }}
-      >
-        <Text
+      {showTime ? (
+        <View
           style={{
-            color: "white",
-            textAlign: "center",
-            fontSize: radius * 0.4
+            position: "absolute",
+            backgroundColor: "transparent",
+            height: "100%",
+            width: "100%",
+            justifyContent: "center"
           }}
         >
-          {roundTime}
-        </Text>
-      </View>
+          <Text
+            style={[
+              {
+                color: "white",
+                textAlign: "center",
+                fontSize: radius * 0.4
+              },
+              textStyle
+            ]}
+          >
+            {roundTime}
+          </Text>
+        </View>
+      ) : null}
+      {/* <Animated.Code>
+        {() =>
+          onChange(pauseFlag, [
+            cond(pauseFlag, [startClock(clock)], [stopClock(clock)]),
+          ])
+        }
+      </Animated.Code> */}
     </View>
   );
 };
