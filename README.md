@@ -1,1 +1,1 @@
-# react-naitve-animated-timer
+# react-native-animated-timer
