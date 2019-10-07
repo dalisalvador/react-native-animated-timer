@@ -28,7 +28,10 @@ const {
   divide,
   multiply,
   sub,
-  debug
+  debug,
+  eq,
+  add,
+  greaterThan
 } = Animated;
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -47,14 +50,16 @@ const AnimatedTimer = ({ ...props }) => {
     showTime,
     onTimeFinished,
     loop = true,
-    pause
+    pause,
+    showMilli,
+    colors
   } = props;
 
   const runTiming = (clock, value, dest) => {
     const config = {
       duration: time,
       toValue: new Value(0),
-      easing: Easing.inOut(Easing.ease)
+      easing: Easing.linear
     };
 
     const state = {
@@ -63,80 +68,60 @@ const AnimatedTimer = ({ ...props }) => {
       finished: new Value(0),
       position: new Value(0),
       time: new Value(0),
-      frameTime: new Value(0)
-    };
-
-    const pausedState = {
-      position: new Value(0),
-      time: new Value(0),
-      frameTime: new Value(0)
+      frameTime: new Value(0),
+      timeSyncedWithClock: new Value(0)
     };
 
     return block([
-      cond(and(pauseFlag, not(state.paused)), [
-        set(state.paused, 1),
-        set(pausedState.position, state.position),
-        set(pausedState.time, state.time),
-        set(pausedState.frameTime, state.frameTime),
-        stopClock(clock),
-        debug("State time:", state.time),
-        debug("State position:", state.position),
-        debug("State frameTime:", state.frameTime),
-        debug("pausedState time:", pausedState.time),
-        debug("pausedState position:", pausedState.position),
-        debug("pausedState frameTime:", pausedState.frameTime)
-      ]),
-      cond(and(not(pauseFlag), state.paused), [
-        set(state.paused, 0),
-        set(state.position, pausedState.position),
-        set(state.time, pausedState.time),
-        set(state.frameTime, pausedState.frameTime),
-        debug("State time:", state.time),
-        debug("State position:", state.position),
-        debug("State frameTime:", state.frameTime),
-        debug("pausedState time:", pausedState.time),
-        debug("pausedState position:", pausedState.position),
-        debug("pausedState frameTime:", pausedState.frameTime),
-        startClock(clock)
-      ]),
       cond(
         clockRunning(clock),
-        [set(config.toValue, dest)],
-        [cond(not(state.started), [startClock(clock), set(state.started, 1)])]
+        [
+          cond(
+            pauseFlag,
+            [set(state.paused, 1), set(state.time, clock)],
+            [set(state.paused, 0), set(config.toValue, dest)]
+          )
+        ],
+        [cond(not(state.started), [set(state.started, 1), startClock(clock)])]
       ),
-      cond(not(state.paused), [timing(clock, state, config)]),
-      // debug('State time:', state.time),
-      // debug('State position:', state.position),
-      // debug('State frameTime:', state.frameTime),
-      // debug('pausedState time:', pausedState.time),
-      // debug('pausedState position:', pausedState.position),
-      // debug('pausedState frameTime:', pausedState.frameTime),
+      cond(not(state.paused), [
+        call([state.frameTime], value => {
+          if (showMilli) {
+            setShowedTime(
+              Number.parseFloat(value[0] / 1000).toFixed(showMilli)
+            );
+          } else setShowedTime(Math.floor(value[0] / 1000));
+        }),
+        timing(clock, state, config)
+      ]),
       cond(state.finished, [
+        call([], () => {
+          setShowedTime(0);
+        }),
         cond(
           loop,
           [
             stopClock(clock),
             call([], () => {
-              if (
-                !randomColors &&
-                colorA !== undefined &&
-                colorB !== undefined
-              ) {
-                if (lastBackgroundRef.current === colorB) {
-                  setLastBackground(colorA);
-                  setBackground(colorB);
+              if (colors !== undefined) {
+                if (colors.length === 1) {
+                  setLastBackground(backgroundRef.current);
+                  setBackground(randomColor());
+                } else if (
+                  colors.length !==
+                  colors.indexOf(backgroundRef.current) + 1
+                ) {
+                  setLastBackground(backgroundRef.current);
+                  setBackground(
+                    colors[colors.indexOf(lastBackgroundRef.current) + 1]
+                  );
                 } else {
-                  setLastBackground(colorB);
-                  setBackground(colorA);
+                  setLastBackground(backgroundRef.current);
+                  setBackground(colors[0]);
                 }
               } else {
                 setLastBackground(backgroundRef.current);
-                setBackground(
-                  "#" +
-                    Math.random()
-                      .toString(16)
-                      .slice(2, 8)
-                );
+                setBackground(randomColor());
               }
               if (onTimeFinished) onTimeFinished();
             }),
@@ -144,7 +129,8 @@ const AnimatedTimer = ({ ...props }) => {
             set(state.time, 0),
             set(state.position, value),
             set(state.frameTime, 0),
-            set(config.toValue, dest)
+            set(config.toValue, dest),
+            startClock(clock)
           ],
           [
             cond(clockRunning(clock), [
@@ -179,26 +165,25 @@ const AnimatedTimer = ({ ...props }) => {
     multiply(divide(progress.current, 100), circumference)
   );
 
-  const [roundTime, setRoundTime] = useState(time / 1000);
-  const roundTimeRef = useRef(roundTime);
-  roundTimeRef.current = roundTime;
-
-  const tick = currentTime => {
-    if (currentTime === 0) {
-      setRoundTime(time / 1000);
-    } else setRoundTime(currentTime - 1);
-  };
+  const [showedTime, setShowedTime] = useState(0);
 
   useEffect(() => {
-    if (!randomColors && colorA !== undefined && colorB !== undefined) {
-      setLastBackground(colorA);
-      setBackground(colorB);
+    if (colors !== undefined) {
+      if (colors.length === 1) {
+        setLastBackground(colors[0]);
+        setBackground(randomColor());
+      } else if (colors.length > 1) {
+        setLastBackground(colors[0]);
+        setBackground(colors[1]);
+      } else if (colors.length === 0) {
+        setLastBackground(randomColor());
+        setBackground(randomColor());
+      }
     } else {
-      setLastBackground("red");
-      setBackground("blue");
+      setLastBackground(randomColor());
+      setBackground(randomColor());
     }
     progress.current = runTiming(clock, 0, 100);
-    setInterval(() => tick(roundTimeRef.current), 1000);
   }, []);
 
   useEffect(() => {
@@ -206,6 +191,14 @@ const AnimatedTimer = ({ ...props }) => {
     else pauseFlag.setValue(0);
   }, [pause]);
 
+  const randomColor = () => {
+    return (
+      "#" +
+      Math.random()
+        .toString(16)
+        .slice(2, 8)
+    );
+  };
   return (
     <View
       elevation={5}
@@ -263,17 +256,10 @@ const AnimatedTimer = ({ ...props }) => {
               textStyle
             ]}
           >
-            {roundTime}
+            {showedTime}
           </Text>
         </View>
       ) : null}
-      {/* <Animated.Code>
-        {() =>
-          onChange(pauseFlag, [
-            cond(pauseFlag, [startClock(clock)], [stopClock(clock)]),
-          ])
-        }
-      </Animated.Code> */}
     </View>
   );
 };
