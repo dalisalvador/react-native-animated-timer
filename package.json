@@ -13,9 +13,9 @@
   "author": "FSE",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/dalisalvador/react-native-circular-timer/issues"
+    "url": "https://github.com/dalisalvador/react-native-animated-timer.git/issues"
   },
-  "homepage": "https://github.com/dalisalvador/react-native-circular-timer#readme",
+  "homepage": "https://github.com/dalisalvador/react-native-animated-timer#readme",
   "dependencies": {
     "react-native-gesture-handler": "^1.4.1",
     "react-native-reanimated": "^1.2.0",
