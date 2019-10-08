@@ -48,4 +48,4 @@ Simple animated timer implementing [react-native-reanimated](https://github.com/
 
 
 </table><h2 id="license">License</h2>
-<p>StibTrack is licensed under <a href="LICENSE">The MIT License</a>.</p>
+<p>react-native-animated-timer is licensed under <a href="LICENSE">The MIT License</a>.</p>
