@@ -1,7 +1,7 @@
 
 # react-native-animated-timer     ⏰
 
-Simple animated timer implementing [react-native-reanimated](https://github.com/kmagiera/react-native-reanimated) and [react-native-svg](https://github.com/react-native-community/react-native-svg) libraries.
+A simple animated timer implementing [react-native-reanimated](https://github.com/kmagiera/react-native-reanimated) and [react-native-svg](https://github.com/react-native-community/react-native-svg) libraries.
  
 ## Examples
 
