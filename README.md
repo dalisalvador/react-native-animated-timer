@@ -36,7 +36,7 @@ Simple animated timer implementing [react-native-reanimated](https://github.com/
 |----------------|-------------------------------|-----------------------------|--|--|
 |radius|`number`|`100`|`true`|radius of the circle
 |time|`number`|`5000`|`true`|time of one lap in milliseconds
-|backgrounds|`array`|`none`|`false`|array of colors or images that will appear in sequence (right->left). Example: `backgrounds={['blue',require('./img/image1'), 'red','https://myimage.com/img2.png']}`
+|backgrounds|`array`|`none`|`false`|array of colors or images that will appear in sequence (left-right). Example: `backgrounds={['blue',require('./img/image1'), 'red','https://myimage.com/img2.png']}`
 |checkPoints|`array`|`none`|`false`|array of objects containing a callback to be executed at a particular time (precision ~65ms). Example:`checkPoints={[{ time: 1120, callback: () => myfunc1()}, { time: 5120, callback: () => myfunc2()}]}`
 |onTimeFinished|`function`|`none`|`false`|Executes function when the timer finishes.
 |pause|`boolean`|`false`|`false`|Stops the timer
