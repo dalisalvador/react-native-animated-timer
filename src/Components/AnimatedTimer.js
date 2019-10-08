@@ -21,17 +21,12 @@ const {
   timing,
   stopClock,
   block,
-  onChange,
   call,
   not,
   and,
   divide,
   multiply,
   sub,
-  debug,
-  eq,
-  add,
-  greaterThan,
 } = Animated;
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -40,14 +35,14 @@ const pauseFlag = new Value(0);
 
 const AnimatedTimer = ({...props}) => {
   const {
-    radius,
-    time,
+    radius = 100,
+    time = 5000,
     textStyle,
-    showTime,
+    showTime = false,
     onTimeFinished,
     loop = true,
-    pause,
-    showMilli,
+    pause = false,
+    showMilli = false,
     backgrounds,
     checkPoints,
   } = props;
