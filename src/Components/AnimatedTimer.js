@@ -49,6 +49,7 @@ const AnimatedTimer = ({...props}) => {
     pause,
     showMilli,
     backgrounds,
+    checkPoints,
   } = props;
 
   const runTiming = (clock, value, dest) => {
@@ -66,6 +67,7 @@ const AnimatedTimer = ({...props}) => {
       time: new Value(0),
       frameTime: new Value(0),
       timeSyncedWithClock: new Value(0),
+      deltaTime: new Value(0),
     };
 
     return block([
@@ -81,13 +83,23 @@ const AnimatedTimer = ({...props}) => {
         [cond(not(state.started), [set(state.started, 1), startClock(clock)])],
       ),
       cond(not(state.paused), [
-        call([state.frameTime], value => {
+        call([state.frameTime, state.deltaTime], value => {
           if (showMilli) {
             setShowedTime(
               Number.parseFloat(value[0] / 1000).toFixed(showMilli),
             );
           } else setShowedTime(Math.floor(value[0] / 1000));
+          if (checkPoints && value[1] < 150) {
+            checkPoints.map((checkPoint, id) => {
+              if (
+                checkPoint.time <= value[0] &&
+                checkPoint.time >= value[0] - value[1]
+              )
+                checkPoint.callback();
+            });
+          }
         }),
+        set(state.deltaTime, sub(clock, state.time)),
         timing(clock, state, config),
       ]),
       cond(state.finished, [
@@ -98,11 +110,6 @@ const AnimatedTimer = ({...props}) => {
           loop,
           [
             stopClock(clock),
-            set(state.finished, 0),
-            set(state.time, 0),
-            set(state.position, value),
-            set(state.frameTime, 0),
-            set(config.toValue, dest),
             call([], async () => {
               if (backgrounds !== undefined) {
                 if (backgrounds.length === 1) {
@@ -128,11 +135,11 @@ const AnimatedTimer = ({...props}) => {
               }
               if (onTimeFinished) onTimeFinished();
             }),
-            // set(state.finished, 0),
-            // set(state.time, 0),
-            // set(state.position, value),
-            // set(state.frameTime, 0),
-            // set(config.toValue, dest),
+            set(state.finished, 0),
+            set(state.time, 0),
+            set(state.position, value),
+            set(state.frameTime, 0),
+            set(config.toValue, dest),
             startClock(clock),
           ],
           [
