@@ -4,6 +4,11 @@
 A simple animated timer implementing [react-native-reanimated](https://github.com/kmagiera/react-native-reanimated) and [react-native-svg](https://github.com/react-native-community/react-native-svg) libraries.
  
 ## Examples
+https://im5.ezgif.com/tmp/ezgif-5-acde54d91f7c.gif
+https://im5.ezgif.com/tmp/ezgif-5-acde54d91f7c.gif
+https://im5.ezgif.com/tmp/ezgif-5-acde54d91f7c.gif
+
+
 
 ## Installation
 `npm install react-native-animated-timer`
