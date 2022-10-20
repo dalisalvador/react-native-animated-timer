@@ -18,7 +18,7 @@
   "homepage": "https://github.com/dalisalvador/react-native-animated-timer#readme",
   "dependencies": {
     "react-native-gesture-handler": "^1.4.1",
-    "react-native-reanimated": "^1.2.0",
+    "react-native-reanimated": "^2.10.0",
     "react-native-shadow": "^1.2.2",
     "react-native-svg": "^9.9.5"
   },
